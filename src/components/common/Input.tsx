@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, forwardRef } from 'react';
 import {
   View,
   Text,
@@ -21,16 +21,19 @@ interface InputProps extends TextInputProps {
   isPassword?: boolean;
 }
 
-export function Input({
-  label,
-  error,
-  leftIcon,
-  rightIcon,
-  onRightIconPress,
-  containerStyle,
-  isPassword = false,
-  ...props
-}: InputProps) {
+export const Input = forwardRef<TextInput, InputProps>(function Input(
+  {
+    label,
+    error,
+    leftIcon,
+    rightIcon,
+    onRightIconPress,
+    containerStyle,
+    isPassword = false,
+    ...props
+  },
+  ref
+) {
   const [secureText, setSecureText] = useState(isPassword);
   const [isFocused, setIsFocused] = useState(false);
 
@@ -53,6 +56,7 @@ export function Input({
           />
         )}
         <TextInput
+          ref={ref}
           style={[styles.input, leftIcon ? styles.inputWithLeft : null]}
           placeholderTextColor={colors.textMuted}
           secureTextEntry={secureText}
@@ -78,7 +82,7 @@ export function Input({
       {error && <Text style={styles.error}>{error}</Text>}
     </View>
   );
-}
+});
 
 const styles = StyleSheet.create({
   container: {
