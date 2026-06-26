@@ -1,11 +1,12 @@
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { StyleSheet, View, Platform, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { getFocusedRouteNameFromRoute, RouteProp } from '@react-navigation/native';
-import { CommunityListScreen } from '@/screens/communities/CommunityListScreen';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { StyleSheet, View, Platform, Pressable } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
 import { CommunityDetailScreen } from '@/screens/communities/CommunityDetailScreen';
+import { CommunityListScreen } from '@/screens/communities/CommunityListScreen';
 import { CreatePostScreen } from '@/screens/posts/CreatePostScreen';
 import { ProfileScreen } from '@/screens/profile/ProfileScreen';
 import { colors, typography } from '@/theme';

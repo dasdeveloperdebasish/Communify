@@ -1,4 +1,5 @@
 import { View, Text, StyleSheet } from 'react-native';
+
 import { borderRadius, colors, typography } from '@/theme';
 
 type AvatarSize = 'sm' | 'md' | 'lg';

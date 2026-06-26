@@ -1,6 +1,6 @@
-import { useOfflineStore } from '@/store/offlineStore';
-import { syncOfflineQueue } from '@/services/offlineQueue';
 import { useJoinCommunity, useLeaveCommunity } from '@/hooks/useCommunities';
+import { syncOfflineQueue } from '@/services/offlineQueue';
+import { useOfflineStore } from '@/store/offlineStore';
 
 export function useOfflineQueue() {
   const { isOnline, addToQueue, queue } = useOfflineStore();

@@ -1,4 +1,5 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+
 import { LoginScreen } from '@/screens/auth/LoginScreen';
 import { colors } from '@/theme';
 

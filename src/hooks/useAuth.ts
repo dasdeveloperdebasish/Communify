@@ -1,10 +1,11 @@
 import { useState } from 'react';
+
 import { apiClient } from '@/api/client';
 import { endpoints } from '@/api/endpoints';
-import { useAuthStore } from '@/store/authStore';
-import { storageService } from '@/services/storage';
-import { queryClient } from '@/services/queryClient';
 import { resetMockStore } from '@/api/mocks/adapter';
+import { queryClient } from '@/services/queryClient';
+import { storageService } from '@/services/storage';
+import { useAuthStore } from '@/store/authStore';
 import { LoginCredentials, User } from '@/types/auth';
 
 export function useAuth() {

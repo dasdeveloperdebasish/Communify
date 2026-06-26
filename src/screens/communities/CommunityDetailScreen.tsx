@@ -1,3 +1,6 @@
+import { Ionicons } from '@expo/vector-icons';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useCallback, useMemo } from 'react';
 import {
   View,
@@ -7,21 +10,19 @@ import {
   ActivityIndicator,
   FlatList,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { useCommunityDetail, useJoinCommunity, useLeaveCommunity } from '@/hooks/useCommunities';
-import { usePostList } from '@/hooks/usePosts';
+
 import { Avatar } from '@/components/common/Avatar';
 import { Badge } from '@/components/common/Badge';
-import { PostCard } from '@/components/features/PostCard';
-import { PostCardSkeleton } from '@/components/common/LoadingSkeleton';
 import { EmptyState } from '@/components/common/EmptyState';
 import { ErrorState } from '@/components/common/ErrorState';
-import { Post } from '@/types/post';
+import { PostCardSkeleton } from '@/components/common/LoadingSkeleton';
+import { PostCard } from '@/components/features/PostCard';
+import { useCommunityDetail, useJoinCommunity, useLeaveCommunity } from '@/hooks/useCommunities';
+import { usePostList } from '@/hooks/usePosts';
 import { CommunitiesStackParamList } from '@/navigation/MainNavigator';
-import { formatNumber, formatRelativeTime } from '@/utils/helpers';
 import { borderRadius, colors, shadows, spacing, typography } from '@/theme';
+import { Post } from '@/types/post';
+import { formatNumber, formatRelativeTime } from '@/utils/helpers';
 
 type RouteProps = RouteProp<CommunitiesStackParamList, 'CommunityDetail'>;
 type NavigationProp = NativeStackNavigationProp<CommunitiesStackParamList, 'CommunityDetail'>;

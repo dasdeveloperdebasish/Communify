@@ -1,7 +1,7 @@
 import { apiClient } from '@/api/client';
 import { endpoints } from '@/api/endpoints';
-import { useOfflineStore, OfflineAction } from '@/store/offlineStore';
 import { queryClient } from '@/services/queryClient';
+import { useOfflineStore, OfflineAction } from '@/store/offlineStore';
 
 async function processAction(action: OfflineAction): Promise<void> {
   if (action.type === 'JOIN') {

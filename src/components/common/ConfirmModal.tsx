@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import {
   View,
   Text,
@@ -6,7 +7,7 @@ import {
   TouchableOpacity,
   TouchableWithoutFeedback,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+
 import { borderRadius, colors, shadows, spacing, typography } from '@/theme';
 
 interface ConfirmModalProps {

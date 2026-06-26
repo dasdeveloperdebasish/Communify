@@ -1,4 +1,5 @@
 import { View, Text, StyleSheet, ViewStyle } from 'react-native';
+
 import { borderRadius, colors, spacing, typography } from '@/theme';
 
 type BadgeVariant = 'primary' | 'success' | 'warning' | 'error' | 'default';

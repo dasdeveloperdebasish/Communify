@@ -1,11 +1,12 @@
+import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { useAuth } from '@/hooks/useAuth';
+
 import { Avatar } from '@/components/common/Avatar';
 import { ConfirmModal } from '@/components/common/ConfirmModal';
+import { useAuth } from '@/hooks/useAuth';
 import { useOfflineStore } from '@/store/offlineStore';
-import { colors, spacing, typography, borderRadius, shadows } from '@/theme';
+import { borderRadius, colors, shadows, spacing, typography } from '@/theme';
 
 export function ProfileScreen() {
   const { user, logout } = useAuth();
@@ -23,7 +24,9 @@ export function ProfileScreen() {
       <View style={styles.profileCard}>
         <Avatar name={user.username} size="lg" />
         <Text style={styles.username}>{user.username}</Text>
-        <Text style={styles.email}>{user.email}</Text>
+        <Text style={styles.email} numberOfLines={1} ellipsizeMode="tail">
+          {user.email}
+        </Text>
         <View style={[styles.statusBadge, isOnline ? styles.statusOnline : styles.statusOffline]}>
           <View
             style={[styles.statusDot, isOnline ? styles.statusDotOnline : styles.statusDotOffline]}
@@ -53,15 +56,23 @@ export function ProfileScreen() {
 
       <View style={styles.infoCard}>
         <View style={styles.infoRow}>
-          <Ionicons name="person-outline" size={18} color={colors.textMuted} />
-          <Text style={styles.infoLabel}>Username</Text>
-          <Text style={styles.infoValue}>{user.username}</Text>
+          <View style={styles.infoLeft}>
+            <Ionicons name="person-outline" size={16} color={colors.textMuted} />
+            <Text style={styles.infoLabel}>Username</Text>
+          </View>
+          <Text style={styles.infoValue} numberOfLines={1} ellipsizeMode="tail">
+            {user.username}
+          </Text>
         </View>
         <View style={styles.infoDivider} />
         <View style={styles.infoRow}>
-          <Ionicons name="mail-outline" size={18} color={colors.textMuted} />
-          <Text style={styles.infoLabel}>Email</Text>
-          <Text style={styles.infoValue}>{user.email}</Text>
+          <View style={styles.infoLeft}>
+            <Ionicons name="mail-outline" size={16} color={colors.textMuted} />
+            <Text style={styles.infoLabel}>Email</Text>
+          </View>
+          <Text style={styles.infoValue} numberOfLines={1} ellipsizeMode="tail">
+            {user.email}
+          </Text>
         </View>
       </View>
 
@@ -121,6 +132,7 @@ const styles = StyleSheet.create({
     ...typography.body2,
     color: colors.textSecondary,
     marginTop: spacing.xs,
+    maxWidth: '80%',
   },
   statusBadge: {
     flexDirection: 'row',
@@ -190,18 +202,26 @@ const styles = StyleSheet.create({
   infoRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.md,
+    justifyContent: 'space-between',
     paddingVertical: spacing.sm,
+  },
+  infoLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    width: 110,
   },
   infoLabel: {
     ...typography.body2,
     color: colors.textSecondary,
-    flex: 1,
   },
   infoValue: {
     ...typography.body2,
     color: colors.textPrimary,
     fontWeight: '600',
+    flex: 1,
+    textAlign: 'right',
+    marginLeft: spacing.sm,
   },
   infoDivider: {
     height: 1,

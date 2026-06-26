@@ -1,3 +1,6 @@
+import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import {
   View,
@@ -9,17 +12,15 @@ import {
   ScrollView,
   FlatList,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { useCommunityList, useJoinCommunity, useLeaveCommunity } from '@/hooks/useCommunities';
-import { CommunityCard } from '@/components/features/CommunityCard';
-import { CommunityCardSkeleton } from '@/components/common/LoadingSkeleton';
+
 import { EmptyState } from '@/components/common/EmptyState';
 import { ErrorState } from '@/components/common/ErrorState';
-import { Community } from '@/types/community';
+import { CommunityCardSkeleton } from '@/components/common/LoadingSkeleton';
+import { CommunityCard } from '@/components/features/CommunityCard';
+import { useCommunityList, useJoinCommunity, useLeaveCommunity } from '@/hooks/useCommunities';
 import { CommunitiesStackParamList } from '@/navigation/MainNavigator';
 import { borderRadius, colors, shadows, spacing, typography } from '@/theme';
+import { Community } from '@/types/community';
 
 type NavigationProp = NativeStackNavigationProp<CommunitiesStackParamList, 'CommunityList'>;
 

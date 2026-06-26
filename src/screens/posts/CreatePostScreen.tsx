@@ -1,4 +1,9 @@
+import { Ionicons } from '@expo/vector-icons';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useRoute, RouteProp, useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useEffect, useCallback } from 'react';
+import { useForm, Controller } from 'react-hook-form';
 import {
   View,
   Text,
@@ -9,18 +14,14 @@ import {
   KeyboardAvoidingView,
   TextInput,
 } from 'react-native';
-import { useForm, Controller } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { Ionicons } from '@expo/vector-icons';
-import { useRoute, RouteProp, useNavigation } from '@react-navigation/native';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useCreatePost } from '@/hooks/usePosts';
-import { createPostSchema, CreatePostFormData } from '@/utils/validation';
-import { storageService } from '@/services/storage';
+
 import { Button } from '@/components/common/Button';
+import { useCreatePost } from '@/hooks/usePosts';
 import { CommunitiesStackParamList } from '@/navigation/MainNavigator';
+import { storageService } from '@/services/storage';
 import { borderRadius, colors, shadows, spacing, typography } from '@/theme';
+import { createPostSchema, CreatePostFormData } from '@/utils/validation';
 
 type RouteProps = RouteProp<CommunitiesStackParamList, 'CreatePost'>;
 type NavigationProp = NativeStackNavigationProp<CommunitiesStackParamList, 'CreatePost'>;

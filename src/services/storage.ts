@@ -1,5 +1,6 @@
-import * as SecureStore from 'expo-secure-store';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as SecureStore from 'expo-secure-store';
+
 import { User } from '@/types/auth';
 
 const KEYS = {

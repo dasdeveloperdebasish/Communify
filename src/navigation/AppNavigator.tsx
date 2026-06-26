@@ -1,10 +1,12 @@
-import { useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
+import { useEffect } from 'react';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
+
 import { AuthNavigator } from './AuthNavigator';
 import { MainNavigator } from './MainNavigator';
-import { useAuthStore } from '@/store/authStore';
+
 import { storageService } from '@/services/storage';
+import { useAuthStore } from '@/store/authStore';
 import { colors } from '@/theme';
 
 export function AppNavigator() {

@@ -1,7 +1,8 @@
+import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useRef } from 'react';
 import { Text, Animated, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
 import { useOfflineStore } from '@/store/offlineStore';
 import { colors, spacing, typography } from '@/theme';
 

@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import { useState, forwardRef } from 'react';
 import {
   View,
@@ -10,7 +11,7 @@ import {
   TextStyle,
   Platform,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+
 import { borderRadius, colors, spacing, typography } from '@/theme';
 
 interface InputProps extends TextInputProps {

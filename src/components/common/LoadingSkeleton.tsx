@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { View, Animated, StyleSheet, ViewStyle } from 'react-native';
+
 import { borderRadius, colors, spacing } from '@/theme';
 
 interface SkeletonBoxProps {

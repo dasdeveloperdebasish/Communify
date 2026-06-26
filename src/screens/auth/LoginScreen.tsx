@@ -1,14 +1,15 @@
+import { Ionicons } from '@expo/vector-icons';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useRef } from 'react';
+import { useForm, Controller } from 'react-hook-form';
 import { View, Text, StyleSheet, Platform, TextInput, TouchableOpacity } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import { useForm, Controller } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { Ionicons } from '@expo/vector-icons';
-import { useAuth } from '@/hooks/useAuth';
-import { loginSchema, LoginFormData } from '@/utils/validation';
-import { Input } from '@/components/common/Input';
+
 import { Button } from '@/components/common/Button';
+import { Input } from '@/components/common/Input';
+import { useAuth } from '@/hooks/useAuth';
 import { colors, spacing, typography, borderRadius, shadows } from '@/theme';
+import { loginSchema, LoginFormData } from '@/utils/validation';
 
 export function LoginScreen() {
   const { login, isLoading, error } = useAuth();

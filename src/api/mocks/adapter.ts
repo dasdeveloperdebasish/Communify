@@ -1,9 +1,11 @@
 import { AxiosInstance, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
+
 import { mockCommunities } from './communities';
 import { mockPosts } from './posts';
+
+import { storageService } from '@/services/storage';
 import { Community, CommunityFilters, CommunityListResponse } from '@/types/community';
 import { CreatePostPayload, Post, PostListResponse } from '@/types/post';
-import { storageService } from '@/services/storage';
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -93,7 +95,9 @@ function handleCommunityList(params: CommunityFilters): AxiosResponse<CommunityL
 function handleCommunityDetail(id: string): AxiosResponse<Community> {
   const community = communityMap.get(id);
   if (!community) {
-    throw { response: { status: 404, data: { message: 'Community not found' } } };
+    throw Object.assign(new Error('Community not found'), {
+      response: { status: 404, data: { message: 'Community not found' } },
+    });
   }
   return mockResponse<Community>({ ...community });
 }
@@ -101,7 +105,9 @@ function handleCommunityDetail(id: string): AxiosResponse<Community> {
 async function handleJoinCommunity(id: string): Promise<AxiosResponse<Community>> {
   const community = communityMap.get(id);
   if (!community) {
-    throw { response: { status: 404, data: { message: 'Community not found' } } };
+    throw Object.assign(new Error('Community not found'), {
+      response: { status: 404, data: { message: 'Community not found' } },
+    });
   }
   community.isJoined = true;
   community.memberCount += 1;
@@ -113,7 +119,9 @@ async function handleJoinCommunity(id: string): Promise<AxiosResponse<Community>
 async function handleLeaveCommunity(id: string): Promise<AxiosResponse<Community>> {
   const community = communityMap.get(id);
   if (!community) {
-    throw { response: { status: 404, data: { message: 'Community not found' } } };
+    throw Object.assign(new Error('Community not found'), {
+      response: { status: 404, data: { message: 'Community not found' } },
+    });
   }
   community.isJoined = false;
   community.memberCount -= 1;
@@ -150,12 +158,12 @@ function handleCreatePost(communityId: string, payload: CreatePostPayload): Axio
   );
 
   if (duplicate) {
-    throw {
+    throw Object.assign(new Error('Duplicate post'), {
       response: {
         status: 409,
         data: { message: 'A post with this title already exists in this community' },
       },
-    };
+    });
   }
 
   const newPost: Post = {
@@ -233,7 +241,9 @@ async function routeRequest(
     return handleCreatePost(postsMatch[1], data as unknown as CreatePostPayload);
   }
 
-  throw { response: { status: 404, data: { message: 'Not found' } } };
+  throw Object.assign(new Error('Not found'), {
+    response: { status: 404, data: { message: 'Not found' } },
+  });
 }
 
 export function installMockAdapter(instance: AxiosInstance): void {

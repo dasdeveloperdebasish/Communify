@@ -1,10 +1,11 @@
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+
 import { Avatar } from '@/components/common/Avatar';
 import { Badge } from '@/components/common/Badge';
+import { borderRadius, colors, shadows, spacing, typography } from '@/theme';
 import { Community } from '@/types/community';
 import { formatNumber } from '@/utils/helpers';
-import { borderRadius, colors, shadows, spacing, typography } from '@/theme';
 
 interface CommunityCardProps {
   community: Community;

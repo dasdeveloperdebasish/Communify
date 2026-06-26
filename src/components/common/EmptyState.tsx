@@ -1,6 +1,8 @@
-import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { View, Text, StyleSheet } from 'react-native';
+
 import { Button } from './Button';
+
 import { colors, spacing, typography } from '@/theme';
 
 interface EmptyStateProps {

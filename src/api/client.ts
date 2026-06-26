@@ -1,5 +1,7 @@
 import axios from 'axios';
+
 import { installMockAdapter } from './mocks/adapter';
+
 import { storageService } from '@/services/storage';
 
 const USE_MOCK = true;

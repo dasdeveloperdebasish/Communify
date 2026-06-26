@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+
 import { User } from '@/types/auth';
 
 interface AuthStore {

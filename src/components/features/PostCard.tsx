@@ -1,8 +1,9 @@
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+
+import { borderRadius, colors, shadows, spacing, typography } from '@/theme';
 import { Post } from '@/types/post';
 import { formatNumber, formatRelativeTime } from '@/utils/helpers';
-import { borderRadius, colors, shadows, spacing, typography } from '@/theme';
 
 interface PostCardProps {
   post: Post;

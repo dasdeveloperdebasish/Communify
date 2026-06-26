@@ -1,4 +1,5 @@
 import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, ViewStyle } from 'react-native';
+
 import { borderRadius, colors, spacing, typography } from '@/theme';
 
 type ButtonVariant = 'primary' | 'secondary' | 'danger' | 'ghost';
