@@ -14,6 +14,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Ionicons } from '@expo/vector-icons';
 import { useRoute, RouteProp, useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useCreatePost } from '@/hooks/usePosts';
 import { createPostSchema, CreatePostFormData } from '@/utils/validation';
 import { storageService } from '@/services/storage';
@@ -30,6 +31,7 @@ export function CreatePostScreen() {
   const navigation = useNavigation<NavigationProp>();
   const { communityId, communityName } = route.params;
   const createPost = useCreatePost();
+  const insets = useSafeAreaInsets();
 
   const {
     control,
@@ -37,7 +39,7 @@ export function CreatePostScreen() {
     watch,
     reset,
     setValue,
-    formState: { errors, isDirty },
+    formState: { errors },
   } = useForm<CreatePostFormData>({
     resolver: zodResolver(createPostSchema),
     defaultValues: {
@@ -61,29 +63,14 @@ export function CreatePostScreen() {
   }, [setValue]);
 
   useEffect(() => {
-    if (isDirty && (titleValue || bodyValue)) {
+    if (titleValue || bodyValue) {
       storageService.setPostDraft({ title: titleValue, body: bodyValue });
     }
-  }, [titleValue, bodyValue, isDirty]);
+  }, [titleValue, bodyValue]);
 
-  const handleDiscard = useCallback(() => {
-    if (isDirty && (titleValue || bodyValue)) {
-      Alert.alert('Discard Post?', 'Your draft will be saved and you can continue later.', [
-        { text: 'Keep Editing', style: 'cancel' },
-        {
-          text: 'Discard',
-          style: 'destructive',
-          onPress: async () => {
-            await storageService.clearPostDraft();
-            reset();
-            navigation.goBack();
-          },
-        },
-      ]);
-    } else {
-      navigation.goBack();
-    }
-  }, [isDirty, titleValue, bodyValue, reset, navigation]);
+  const handleClose = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
 
   const onSubmit = useCallback(
     async (data: CreatePostFormData) => {
@@ -114,8 +101,8 @@ export function CreatePostScreen() {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <View style={styles.header}>
-        <TouchableOpacity onPress={handleDiscard} style={styles.headerButton}>
+      <View style={[styles.header, { paddingTop: insets.top + spacing.sm }]}>
+        <TouchableOpacity onPress={handleClose} style={styles.headerButton}>
           <Ionicons name="close" size={24} color={colors.textPrimary} />
         </TouchableOpacity>
         <View style={styles.headerCenter}>
@@ -235,7 +222,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: colors.surface,
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
+    paddingBottom: spacing.sm,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
     gap: spacing.sm,

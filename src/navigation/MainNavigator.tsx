@@ -58,8 +58,7 @@ function CommunitiesStackNavigator() {
         name="CreatePost"
         component={CreatePostScreen}
         options={{
-          title: 'Create Post',
-          headerBackTitle: '',
+          headerShown: false,
           presentation: 'modal',
         }}
       />
