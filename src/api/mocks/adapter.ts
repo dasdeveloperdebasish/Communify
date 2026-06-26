@@ -134,9 +134,10 @@ function handleCreatePost(communityId: string, payload: CreatePostPayload): Axio
   return mockResponse<Post>(newPost, 201);
 }
 
-function handleLogin(
-  email: string
-): AxiosResponse<{ token: string; user: { id: string; email: string; username: string } }> {
+function handleLogin(email: string): AxiosResponse<{
+  token: string;
+  user: { id: string; email: string; username: string };
+}> {
   return mockResponse({
     token: 'mock_token_' + Date.now(),
     user: {
@@ -147,61 +148,66 @@ function handleLogin(
   });
 }
 
+function routeRequest(
+  method: string,
+  url: string,
+  params: Record<string, unknown>,
+  data: Record<string, unknown>
+): AxiosResponse {
+  if (url === '/auth/login' && method === 'post') {
+    return handleLogin(data.email as string);
+  }
+
+  if (url === '/communities' && method === 'get') {
+    return handleCommunityList(params as CommunityFilters);
+  }
+
+  const communityDetailMatch = url.match(/^\/communities\/([^/]+)$/);
+  if (communityDetailMatch && method === 'get') {
+    return handleCommunityDetail(communityDetailMatch[1]);
+  }
+
+  const joinMatch = url.match(/^\/communities\/([^/]+)\/join$/);
+  if (joinMatch && method === 'post') {
+    return handleJoinCommunity(joinMatch[1]);
+  }
+
+  const leaveMatch = url.match(/^\/communities\/([^/]+)\/leave$/);
+  if (leaveMatch && method === 'post') {
+    return handleLeaveCommunity(leaveMatch[1]);
+  }
+
+  const postsMatch = url.match(/^\/communities\/([^/]+)\/posts$/);
+  if (postsMatch && method === 'get') {
+    return handlePostList(postsMatch[1], params as { page?: number; limit?: number });
+  }
+
+  if (postsMatch && method === 'post') {
+    return handleCreatePost(postsMatch[1], data as unknown as CreatePostPayload);
+  }
+  throw { response: { status: 404, data: { message: 'Not found' } } };
+}
+
 export function installMockAdapter(instance: AxiosInstance): void {
   instance.interceptors.request.use(async (config) => {
-    await delay(300);
-    return config;
-  });
-
-  instance.interceptors.response.use(undefined, async (error) => {
-    return Promise.reject(error);
-  });
-
-  const originalRequest = instance.request.bind(instance);
-
-  instance.request = async function <T = unknown>(
-    config: InternalAxiosRequestConfig
-  ): Promise<AxiosResponse<T>> {
     await delay(300);
 
     const method = (config.method || 'get').toLowerCase();
     const url = config.url || '';
-    const params = config.params || {};
-    const data = config.data ? JSON.parse(config.data) : {};
+    const params = (config.params as Record<string, unknown>) || {};
+    const data = config.data
+      ? typeof config.data === 'string'
+        ? (JSON.parse(config.data) as Record<string, unknown>)
+        : (config.data as Record<string, unknown>)
+      : {};
 
-    if (url === '/auth/login' && method === 'post') {
-      return handleLogin(data.email) as AxiosResponse<T>;
+    try {
+      const response = routeRequest(method, url, params, data);
+      config.adapter = () => Promise.resolve(response);
+    } catch (err) {
+      config.adapter = () => Promise.reject(err);
     }
 
-    const communityDetailMatch = url.match(/^\/communities\/([^/]+)$/);
-    const joinMatch = url.match(/^\/communities\/([^/]+)\/join$/);
-    const leaveMatch = url.match(/^\/communities\/([^/]+)\/leave$/);
-    const postsMatch = url.match(/^\/communities\/([^/]+)\/posts$/);
-
-    if (url === '/communities' && method === 'get') {
-      return handleCommunityList(params) as AxiosResponse<T>;
-    }
-
-    if (communityDetailMatch && method === 'get') {
-      return handleCommunityDetail(communityDetailMatch[1]) as AxiosResponse<T>;
-    }
-
-    if (joinMatch && method === 'post') {
-      return handleJoinCommunity(joinMatch[1]) as AxiosResponse<T>;
-    }
-
-    if (leaveMatch && method === 'post') {
-      return handleLeaveCommunity(leaveMatch[1]) as AxiosResponse<T>;
-    }
-
-    if (postsMatch && method === 'get') {
-      return handlePostList(postsMatch[1], params) as AxiosResponse<T>;
-    }
-
-    if (postsMatch && method === 'post') {
-      return handleCreatePost(postsMatch[1], data) as AxiosResponse<T>;
-    }
-
-    return originalRequest(config);
-  } as typeof instance.request;
+    return config;
+  });
 }
