@@ -12,7 +12,6 @@ import { PostCard } from '@/components/features/PostCard';
 import { PostCardSkeleton } from '@/components/common/LoadingSkeleton';
 import { EmptyState } from '@/components/common/EmptyState';
 import { ErrorState } from '@/components/common/ErrorState';
-import { OfflineBanner } from '@/components/common/OfflineBanner';
 import { Post } from '@/types/post';
 import { CommunitiesStackParamList } from '@/navigation/MainNavigator';
 import { formatNumber, formatRelativeTime } from '@/utils/helpers';
@@ -201,7 +200,6 @@ export function CommunityDetailScreen() {
 
   return (
     <View style={styles.container}>
-      <OfflineBanner />
       <FlashList
         data={posts}
         renderItem={renderItem}

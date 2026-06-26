@@ -1,6 +1,14 @@
 import { useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, Platform, TouchableOpacity, Alert } from 'react-native';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Platform,
+  TouchableOpacity,
+  ScrollView,
+  KeyboardAvoidingView,
+  TextInput,
+} from 'react-native';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Ionicons } from '@expo/vector-icons';
@@ -10,13 +18,14 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useCreatePost } from '@/hooks/usePosts';
 import { createPostSchema, CreatePostFormData } from '@/utils/validation';
 import { storageService } from '@/services/storage';
-import { Input } from '@/components/common/Input';
 import { Button } from '@/components/common/Button';
 import { CommunitiesStackParamList } from '@/navigation/MainNavigator';
 import { borderRadius, colors, shadows, spacing, typography } from '@/theme';
 
 type RouteProps = RouteProp<CommunitiesStackParamList, 'CreatePost'>;
 type NavigationProp = NativeStackNavigationProp<CommunitiesStackParamList, 'CreatePost'>;
+
+let isPostSubmitting = false;
 
 export function CreatePostScreen() {
   const route = useRoute<RouteProps>();
@@ -31,6 +40,7 @@ export function CreatePostScreen() {
     watch,
     reset,
     setValue,
+    setError,
     formState: { errors },
   } = useForm<CreatePostFormData>({
     resolver: zodResolver(createPostSchema),
@@ -38,10 +48,18 @@ export function CreatePostScreen() {
       title: '',
       body: '',
     },
+    mode: 'onSubmit',
   });
 
   const titleValue = watch('title');
   const bodyValue = watch('body');
+
+  useEffect(() => {
+    isPostSubmitting = false;
+    return () => {
+      isPostSubmitting = false;
+    };
+  }, []);
 
   useEffect(() => {
     async function loadDraft() {
@@ -66,7 +84,8 @@ export function CreatePostScreen() {
 
   const onSubmit = useCallback(
     async (data: CreatePostFormData) => {
-      if (createPost.isPending) return;
+      if (isPostSubmitting) return;
+      isPostSubmitting = true;
       try {
         await createPost.mutateAsync({
           communityId,
@@ -75,23 +94,40 @@ export function CreatePostScreen() {
         });
         await storageService.clearPostDraft();
         reset();
+        isPostSubmitting = false;
         navigation.goBack();
-      } catch {
-        Alert.alert('Post Failed', 'Could not submit your post. Your draft has been saved.', [
-          { text: 'OK' },
-        ]);
+      } catch (error: unknown) {
+        isPostSubmitting = false;
+        const apiError = error as {
+          response?: { status?: number; data?: { message?: string } };
+        };
+        if (apiError?.response?.status === 409) {
+          setError('title', {
+            type: 'manual',
+            message:
+              apiError.response.data?.message ??
+              'A post with this title already exists in this community',
+          });
+        }
       }
     },
-    [createPost, communityId, reset, navigation]
+    [createPost, communityId, reset, setError, navigation]
   );
 
   const titleLength = titleValue?.length ?? 0;
   const bodyLength = bodyValue?.length ?? 0;
 
   return (
-    <View style={styles.container}>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
       <View style={[styles.header, { paddingTop: insets.top + spacing.sm }]}>
-        <TouchableOpacity onPress={handleClose} style={styles.headerButton}>
+        <TouchableOpacity
+          onPress={handleClose}
+          style={styles.headerButton}
+          accessibilityLabel="Close create post"
+        >
           <Ionicons name="close" size={24} color={colors.textPrimary} />
         </TouchableOpacity>
         <View style={styles.headerCenter}>
@@ -110,14 +146,11 @@ export function CreatePostScreen() {
         />
       </View>
 
-      <KeyboardAwareScrollView
+      <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
-        enableOnAndroid
-        extraScrollHeight={Platform.OS === 'android' ? 100 : 20}
-        enableAutomaticScroll
         bounces={false}
       >
         <View style={styles.communityBadge}>
@@ -126,46 +159,69 @@ export function CreatePostScreen() {
         </View>
 
         <View style={styles.formCard}>
-          <Text style={styles.fieldLabel}>Title</Text>
           <Controller
             control={control}
             name="title"
             render={({ field: { onChange, onBlur, value } }) => (
-              <Input
-                placeholder="Give your post a clear, descriptive title..."
-                onChangeText={onChange}
-                onBlur={onBlur}
-                value={value}
-                error={errors.title?.message}
-                maxLength={150}
-                returnKeyType="next"
-                autoFocus
-                style={styles.bodyInput}
-              />
+              <View style={styles.titleSection}>
+                <TextInput
+                  style={styles.titleInput}
+                  placeholder="Post title"
+                  placeholderTextColor={colors.textMuted}
+                  onChangeText={onChange}
+                  onBlur={onBlur}
+                  value={value}
+                  maxLength={150}
+                  returnKeyType="next"
+                  keyboardType="default"
+                  autoCapitalize="sentences"
+                  autoCorrect
+                  autoFocus
+                />
+                {errors.title && (
+                  <View style={styles.errorRow}>
+                    <Ionicons name="alert-circle-outline" size={14} color={colors.error} />
+                    <Text style={styles.errorText}>{errors.title.message}</Text>
+                  </View>
+                )}
+                <Text style={styles.charCount}>{titleLength}/150</Text>
+              </View>
             )}
           />
-          <Text style={styles.charCount}>{titleLength}/150</Text>
 
-          <Text style={styles.fieldLabel}>Body</Text>
+          <View style={styles.divider} />
+
           <Controller
             control={control}
             name="body"
             render={({ field: { onChange, onBlur, value } }) => (
-              <Input
-                placeholder="Share your thoughts, questions or insights..."
-                onChangeText={onChange}
-                onBlur={onBlur}
-                value={value}
-                error={errors.body?.message}
-                multiline
-                numberOfLines={8}
-                maxLength={5000}
-                returnKeyType="default"
-                style={styles.bodyInput}
-              />
+              <View style={styles.bodySection}>
+                <TextInput
+                  style={styles.bodyInput}
+                  placeholder="Share your thoughts, questions or insights..."
+                  placeholderTextColor={colors.textMuted}
+                  onChangeText={onChange}
+                  onBlur={onBlur}
+                  value={value}
+                  maxLength={5000}
+                  returnKeyType="default"
+                  keyboardType="default"
+                  autoCapitalize="sentences"
+                  autoCorrect
+                  multiline
+                  textAlignVertical="top"
+                  scrollEnabled
+                />
+                {errors.body && (
+                  <View style={styles.errorRow}>
+                    <Ionicons name="alert-circle-outline" size={14} color={colors.error} />
+                    <Text style={styles.errorText}>{errors.body.message}</Text>
+                  </View>
+                )}
+                <Text style={styles.charCount}>{bodyLength}/5000</Text>
+              </View>
             )}
           />
-          <Text style={styles.charCount}>{bodyLength}/5000</Text>
         </View>
 
         <View style={styles.tipsCard}>
@@ -175,28 +231,21 @@ export function CreatePostScreen() {
           </View>
           <View style={styles.tipsList}>
             <View style={styles.tipItem}>
-              <Ionicons name="checkmark-outline" size={14} color={colors.success} />
+              <Ionicons name="checkmark-circle-outline" size={16} color={colors.success} />
               <Text style={styles.tipText}>Be clear and specific in your title</Text>
             </View>
             <View style={styles.tipItem}>
-              <Ionicons name="checkmark-outline" size={14} color={colors.success} />
+              <Ionicons name="checkmark-circle-outline" size={16} color={colors.success} />
               <Text style={styles.tipText}>Provide enough context in the body</Text>
             </View>
             <View style={styles.tipItem}>
-              <Ionicons name="checkmark-outline" size={14} color={colors.success} />
+              <Ionicons name="checkmark-circle-outline" size={16} color={colors.success} />
               <Text style={styles.tipText}>Follow community rules before posting</Text>
             </View>
           </View>
         </View>
-
-        {createPost.isError && (
-          <View style={styles.errorBanner}>
-            <Ionicons name="alert-circle-outline" size={16} color={colors.error} />
-            <Text style={styles.errorText}>Failed to submit. Your draft is saved — try again.</Text>
-          </View>
-        )}
-      </KeyboardAwareScrollView>
-    </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -244,6 +293,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     padding: spacing.md,
     gap: spacing.md,
+    paddingBottom: spacing.xxl,
   },
   communityBadge: {
     flexDirection: 'row',
@@ -263,25 +313,55 @@ const styles = StyleSheet.create({
   formCard: {
     backgroundColor: colors.surface,
     borderRadius: borderRadius.lg,
-    padding: spacing.md,
+    overflow: 'hidden',
     ...shadows.md,
   },
-  fieldLabel: {
-    ...typography.body2,
+  titleSection: {
+    paddingHorizontal: spacing.md,
+    paddingTop: spacing.md,
+    paddingBottom: spacing.sm,
+  },
+  titleInput: {
+    fontSize: 20,
     fontWeight: '600',
     color: colors.textPrimary,
-    marginBottom: spacing.xs,
+    includeFontPadding: false,
+    paddingVertical: spacing.xs,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: colors.border,
+    marginHorizontal: spacing.md,
+  },
+  bodySection: {
+    paddingHorizontal: spacing.md,
+    paddingTop: spacing.sm,
+    paddingBottom: spacing.md,
   },
   bodyInput: {
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: 15,
+    color: colors.textPrimary,
+    includeFontPadding: false,
+    lineHeight: 22,
+    minHeight: 100,
+    maxHeight: 200,
+  },
+  errorRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    marginTop: spacing.xs,
+  },
+  errorText: {
+    ...typography.caption,
+    color: colors.error,
+    flex: 1,
   },
   charCount: {
     ...typography.caption,
     color: colors.textMuted,
     textAlign: 'right',
     marginTop: spacing.xs,
-    marginBottom: spacing.md,
   },
   tipsCard: {
     backgroundColor: colors.surface,
@@ -303,7 +383,7 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
   },
   tipsList: {
-    gap: spacing.xs,
+    gap: spacing.sm,
   },
   tipItem: {
     flexDirection: 'row',
@@ -313,19 +393,6 @@ const styles = StyleSheet.create({
   tipText: {
     ...typography.caption,
     color: colors.textSecondary,
-    flex: 1,
-  },
-  errorBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FEE2E2',
-    borderRadius: borderRadius.md,
-    padding: spacing.md,
-    gap: spacing.sm,
-  },
-  errorText: {
-    ...typography.body2,
-    color: colors.error,
     flex: 1,
   },
 });

@@ -139,6 +139,22 @@ function handlePostList(
 }
 
 function handleCreatePost(communityId: string, payload: CreatePostPayload): AxiosResponse<Post> {
+  const recentDuplicate = postStore.find(
+    (p) =>
+      p.communityId === communityId &&
+      p.title.toLowerCase().trim() === payload.title.toLowerCase().trim() &&
+      p.authorId === 'current_user'
+  );
+
+  if (recentDuplicate) {
+    throw {
+      response: {
+        status: 409,
+        data: { message: 'A post with this title already exists in this community' },
+      },
+    };
+  }
+
   const newPost: Post = {
     id: `p${nextPostId++}`,
     communityId,
@@ -151,6 +167,7 @@ function handleCreatePost(communityId: string, payload: CreatePostPayload): Axio
     isLiked: false,
     createdAt: new Date().toISOString(),
   };
+
   postStore.unshift(newPost);
 
   const community = communityStore.find((c) => c.id === communityId);

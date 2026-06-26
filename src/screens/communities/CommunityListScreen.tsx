@@ -17,7 +17,6 @@ import { CommunityCard } from '@/components/features/CommunityCard';
 import { CommunityCardSkeleton } from '@/components/common/LoadingSkeleton';
 import { EmptyState } from '@/components/common/EmptyState';
 import { ErrorState } from '@/components/common/ErrorState';
-import { OfflineBanner } from '@/components/common/OfflineBanner';
 import { Community } from '@/types/community';
 import { CommunitiesStackParamList } from '@/navigation/MainNavigator';
 import { borderRadius, colors, shadows, spacing, typography } from '@/theme';
@@ -149,8 +148,6 @@ export function CommunityListScreen() {
 
   return (
     <View style={styles.container}>
-      <OfflineBanner />
-
       <View style={styles.searchBar}>
         <View style={styles.searchInputWrapper}>
           <Ionicons name="search-outline" size={18} color={colors.textMuted} />

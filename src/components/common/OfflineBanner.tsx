@@ -1,13 +1,20 @@
 import { useEffect, useRef } from 'react';
-import { View, Text, Animated, StyleSheet } from 'react-native';
+import { Text, Animated, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useOfflineStore } from '@/store/offlineStore';
 import { colors, spacing, typography } from '@/theme';
 
 export function OfflineBanner() {
   const isOnline = useOfflineStore((state) => state.isOnline);
-  const translateY = useRef(new Animated.Value(-60)).current;
+  const insets = useSafeAreaInsets();
+  const insetsRef = useRef(insets.top);
+  const translateY = useRef(new Animated.Value(-100)).current;
   const wasOffline = useRef(false);
+
+  useEffect(() => {
+    insetsRef.current = insets.top;
+  }, [insets.top]);
 
   useEffect(() => {
     if (!isOnline) {
@@ -19,8 +26,9 @@ export function OfflineBanner() {
         friction: 10,
       }).start();
     } else if (wasOffline.current) {
+      wasOffline.current = false;
       Animated.timing(translateY, {
-        toValue: -60,
+        toValue: -(100 + insetsRef.current),
         duration: 300,
         useNativeDriver: true,
       }).start();
@@ -28,8 +36,16 @@ export function OfflineBanner() {
   }, [isOnline, translateY]);
 
   return (
-    <Animated.View style={[styles.banner, { transform: [{ translateY }] }]}>
-      <Ionicons name="cloud-offline-outline" size={18} color={colors.surface} />
+    <Animated.View
+      style={[
+        styles.banner,
+        {
+          top: insets.top,
+          transform: [{ translateY }],
+        },
+      ]}
+    >
+      <Ionicons name="cloud-offline-outline" size={16} color={colors.surface} />
       <Text style={styles.text}>You're offline</Text>
       <Text style={styles.subtext}>Showing cached content</Text>
     </Animated.View>
@@ -39,7 +55,6 @@ export function OfflineBanner() {
 const styles = StyleSheet.create({
   banner: {
     position: 'absolute',
-    top: 0,
     left: 0,
     right: 0,
     backgroundColor: colors.warning,
@@ -48,6 +63,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     zIndex: 999,
+    elevation: 999,
     gap: spacing.sm,
   },
   text: {

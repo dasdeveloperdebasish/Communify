@@ -18,7 +18,9 @@ export function usePostList(communityId: string) {
     },
     getNextPageParam: (lastPage) => (lastPage.hasMore ? lastPage.page + 1 : undefined),
     initialPageParam: 1,
-    staleTime: 1000 * 60 * 3,
+    staleTime: 1000 * 60 * 5,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
   });
 }
 
@@ -33,50 +35,39 @@ export function useCreatePost() {
       );
       return response.data;
     },
-    onMutate: async (payload) => {
-      await queryClient.cancelQueries({
-        queryKey: [QUERY_KEYS.posts, payload.communityId],
-      });
-
-      const previousPosts = queryClient.getQueryData([QUERY_KEYS.posts, payload.communityId]);
-
-      const optimisticPost: Post = {
-        id: `optimistic_${Date.now()}`,
-        communityId: payload.communityId,
-        title: payload.title,
-        body: payload.body,
-        authorId: 'current_user',
-        authorName: 'You',
-        likeCount: 0,
-        commentCount: 0,
-        isLiked: false,
-        createdAt: new Date().toISOString(),
-      };
-
-      queryClient.setQueryData<{ pages: PostListResponse[] }>(
+    onSuccess: (newPost, payload) => {
+      queryClient.setQueryData<{ pages: PostListResponse[]; pageParams: unknown[] }>(
         [QUERY_KEYS.posts, payload.communityId],
         (old) => {
-          if (!old) return old;
+          if (!old) {
+            return {
+              pages: [
+                {
+                  data: [newPost],
+                  total: 1,
+                  page: 1,
+                  limit: 10,
+                  hasMore: false,
+                },
+              ],
+              pageParams: [1],
+            };
+          }
+          const firstPage = old.pages[0];
+          const alreadyExists = firstPage.data.some((p) => p.id === newPost.id);
+          if (alreadyExists) return old;
           return {
             ...old,
-            pages: old.pages.map((page, index) =>
-              index === 0 ? { ...page, data: [optimisticPost, ...page.data] } : page
-            ),
+            pages: [
+              {
+                ...firstPage,
+                data: [newPost, ...firstPage.data],
+              },
+              ...old.pages.slice(1),
+            ],
           };
         }
       );
-
-      return { previousPosts };
-    },
-    onError: (_err, payload, context) => {
-      if (context?.previousPosts) {
-        queryClient.setQueryData([QUERY_KEYS.posts, payload.communityId], context.previousPosts);
-      }
-    },
-    onSettled: (_, __, payload) => {
-      queryClient.invalidateQueries({
-        queryKey: [QUERY_KEYS.posts, payload.communityId],
-      });
     },
   });
 }

@@ -68,6 +68,7 @@ function CommunitiesStackNavigator() {
         options={({ route }) => ({
           title: route.params.communityName,
           headerBackTitle: '',
+          headerShown: true,
         })}
       />
       <CommunitiesStack.Screen
