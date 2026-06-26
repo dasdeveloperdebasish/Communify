@@ -1,24 +1,16 @@
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import { useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/hooks/useAuth';
 import { Avatar } from '@/components/common/Avatar';
+import { ConfirmModal } from '@/components/common/ConfirmModal';
 import { useOfflineStore } from '@/store/offlineStore';
 import { colors, spacing, typography, borderRadius, shadows } from '@/theme';
 
 export function ProfileScreen() {
   const { user, logout } = useAuth();
   const { isOnline, queue } = useOfflineStore();
-
-  const handleLogout = () => {
-    Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Sign Out',
-        style: 'destructive',
-        onPress: logout,
-      },
-    ]);
-  };
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   if (!user) return null;
 
@@ -73,12 +65,31 @@ export function ProfileScreen() {
         </View>
       </View>
 
-      <TouchableOpacity style={styles.logoutButton} onPress={handleLogout} activeOpacity={0.8}>
+      <TouchableOpacity
+        style={styles.logoutButton}
+        onPress={() => setShowLogoutModal(true)}
+        activeOpacity={0.8}
+      >
         <Ionicons name="log-out-outline" size={20} color={colors.error} />
         <Text style={styles.logoutText}>Sign Out</Text>
       </TouchableOpacity>
 
       <Text style={styles.version}>Communify v1.0.0</Text>
+
+      <ConfirmModal
+        visible={showLogoutModal}
+        title="Sign Out"
+        message="Are you sure you want to sign out of your account?"
+        confirmLabel="Sign Out"
+        cancelLabel="Cancel"
+        confirmVariant="danger"
+        icon="log-out-outline"
+        onConfirm={() => {
+          setShowLogoutModal(false);
+          logout();
+        }}
+        onCancel={() => setShowLogoutModal(false)}
+      />
     </ScrollView>
   );
 }

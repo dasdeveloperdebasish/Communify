@@ -1,6 +1,12 @@
 import { useCallback, useMemo } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { FlashList } from '@shopify/flash-list';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ActivityIndicator,
+  FlatList,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -200,7 +206,7 @@ export function CommunityDetailScreen() {
 
   return (
     <View style={styles.container}>
-      <FlashList
+      <FlatList
         data={posts}
         renderItem={renderItem}
         keyExtractor={(item) => item.id}
