@@ -1,14 +1,6 @@
 import { useEffect, useCallback } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  KeyboardAvoidingView,
-  Platform,
-  TouchableOpacity,
-  Alert,
-} from 'react-native';
+import { View, Text, StyleSheet, Platform, TouchableOpacity, Alert } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Ionicons } from '@expo/vector-icons';
@@ -97,10 +89,7 @@ export function CreatePostScreen() {
   const bodyLength = bodyValue?.length ?? 0;
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
+    <View style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top + spacing.sm }]}>
         <TouchableOpacity onPress={handleClose} style={styles.headerButton}>
           <Ionicons name="close" size={24} color={colors.textPrimary} />
@@ -121,11 +110,15 @@ export function CreatePostScreen() {
         />
       </View>
 
-      <ScrollView
+      <KeyboardAwareScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
+        enableOnAndroid
+        extraScrollHeight={Platform.OS === 'android' ? 100 : 20}
+        enableAutomaticScroll
+        bounces={false}
       >
         <View style={styles.communityBadge}>
           <Ionicons name="people-outline" size={14} color={colors.primary} />
@@ -147,6 +140,7 @@ export function CreatePostScreen() {
                 maxLength={150}
                 returnKeyType="next"
                 autoFocus
+                style={styles.bodyInput}
               />
             )}
           />
@@ -167,6 +161,7 @@ export function CreatePostScreen() {
                 numberOfLines={8}
                 maxLength={5000}
                 returnKeyType="default"
+                style={styles.bodyInput}
               />
             )}
           />
@@ -200,8 +195,8 @@ export function CreatePostScreen() {
             <Text style={styles.errorText}>Failed to submit. Your draft is saved — try again.</Text>
           </View>
         )}
-      </ScrollView>
-    </KeyboardAvoidingView>
+      </KeyboardAwareScrollView>
+    </View>
   );
 }
 
@@ -276,6 +271,10 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: colors.textPrimary,
     marginBottom: spacing.xs,
+  },
+  bodyInput: {
+    fontSize: 14,
+    lineHeight: 20,
   },
   charCount: {
     ...typography.caption,
