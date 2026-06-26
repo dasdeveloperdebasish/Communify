@@ -1,12 +1,13 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { TouchableOpacity, StyleSheet, View, Platform } from 'react-native';
+import { StyleSheet, View, Platform, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { getFocusedRouteNameFromRoute, RouteProp } from '@react-navigation/native';
 import { CommunityListScreen } from '@/screens/communities/CommunityListScreen';
 import { CommunityDetailScreen } from '@/screens/communities/CommunityDetailScreen';
 import { CreatePostScreen } from '@/screens/posts/CreatePostScreen';
-import { useAuth } from '@/hooks/useAuth';
+import { ProfileScreen } from '@/screens/profile/ProfileScreen';
 import { colors, typography } from '@/theme';
 
 export type CommunitiesStackParamList = {
@@ -17,14 +18,33 @@ export type CommunitiesStackParamList = {
 
 export type MainTabParamList = {
   CommunitiesTab: undefined;
+  ProfileTab: undefined;
 };
 
 const CommunitiesStack = createNativeStackNavigator<CommunitiesStackParamList>();
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
-function CommunitiesStackNavigator() {
-  const { logout } = useAuth();
+function getTabBarVisibility(route: RouteProp<MainTabParamList, 'CommunitiesTab'>): boolean {
+  const routeName = getFocusedRouteNameFromRoute(route) ?? 'CommunityList';
+  return routeName === 'CommunityList';
+}
 
+function TabBarButton(props: any) {
+  return (
+    <Pressable
+      {...props}
+      android_ripple={null}
+      style={({ pressed }) => [
+        props.style,
+        {
+          opacity: pressed ? 0.7 : 1,
+        },
+      ]}
+    />
+  );
+}
+
+function CommunitiesStackNavigator() {
   return (
     <CommunitiesStack.Navigator
       screenOptions={{
@@ -40,11 +60,6 @@ function CommunitiesStackNavigator() {
         component={CommunityListScreen}
         options={{
           title: 'Communities',
-          headerRight: () => (
-            <TouchableOpacity onPress={logout} style={styles.logoutButton}>
-              <Ionicons name="log-out-outline" size={24} color={colors.primary} />
-            </TouchableOpacity>
-          ),
         }}
       />
       <CommunitiesStack.Screen
@@ -76,21 +91,39 @@ function TabBar() {
       <Tab.Navigator
         screenOptions={{
           headerShown: false,
-          tabBarStyle: [
-            styles.tabBar,
-            { paddingBottom: bottomPadding, height: 52 + bottomPadding },
-          ],
           tabBarActiveTintColor: colors.primary,
           tabBarInactiveTintColor: colors.textMuted,
           tabBarLabelStyle: styles.tabBarLabel,
+          tabBarHideOnKeyboard: true,
+          tabBarButton: (props) => <TabBarButton {...props} />,
         }}
       >
         <Tab.Screen
           name="CommunitiesTab"
           component={CommunitiesStackNavigator}
-          options={{
+          options={({ route }) => ({
             title: 'Communities',
             tabBarIcon: ({ color, size }) => <Ionicons name="people" size={size} color={color} />,
+            tabBarStyle: getTabBarVisibility(route)
+              ? [styles.tabBar, { paddingBottom: bottomPadding, height: 52 + bottomPadding }]
+              : { display: 'none' },
+          })}
+        />
+        <Tab.Screen
+          name="ProfileTab"
+          component={ProfileScreen}
+          options={{
+            title: 'Profile',
+            tabBarIcon: ({ color, size }) => <Ionicons name="person" size={size} color={color} />,
+            tabBarStyle: [
+              styles.tabBar,
+              { paddingBottom: bottomPadding, height: 52 + bottomPadding },
+            ],
+            headerShown: true,
+            headerStyle: styles.header,
+            headerTitleStyle: styles.headerTitle,
+            headerShadowVisible: true,
+            headerTitle: 'Profile',
           }}
         />
       </Tab.Navigator>
@@ -112,10 +145,6 @@ const styles = StyleSheet.create({
   headerTitle: {
     ...typography.h3,
     color: colors.textPrimary,
-  },
-  logoutButton: {
-    marginRight: 4,
-    padding: 4,
   },
   tabBar: {
     backgroundColor: colors.surface,
