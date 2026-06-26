@@ -7,8 +7,9 @@ import { storageService } from '@/services/storage';
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-let communityStore: Community[] = mockCommunities.map((c) => ({ ...c }));
-let postStore: Post[] = mockPosts.map((p) => ({ ...p }));
+let communityStore: Community[] = [];
+let postStore: Post[] = [];
+let communityMap: Map<string, Community> = new Map();
 let nextPostId = 100;
 let storeInitialized = false;
 
@@ -18,9 +19,10 @@ export async function initMockStore(): Promise<void> {
   communityStore = mockCommunities.map((c) => ({ ...c }));
   postStore = mockPosts.map((p) => ({ ...p }));
   nextPostId = 100;
+  communityMap = new Map(communityStore.map((c) => [c.id, c]));
   const joinedIds = await storageService.getJoinedCommunities();
   joinedIds.forEach((id) => {
-    const community = communityStore.find((c) => c.id === id);
+    const community = communityMap.get(id);
     if (community) {
       community.isJoined = true;
     }
@@ -31,6 +33,7 @@ export function resetMockStore(): void {
   storeInitialized = false;
   communityStore = mockCommunities.map((c) => ({ ...c }));
   postStore = mockPosts.map((p) => ({ ...p }));
+  communityMap = new Map(communityStore.map((c) => [c.id, c]));
   nextPostId = 100;
 }
 
@@ -88,15 +91,15 @@ function handleCommunityList(params: CommunityFilters): AxiosResponse<CommunityL
 }
 
 function handleCommunityDetail(id: string): AxiosResponse<Community> {
-  const community = communityStore.find((c) => c.id === id);
+  const community = communityMap.get(id);
   if (!community) {
     throw { response: { status: 404, data: { message: 'Community not found' } } };
   }
-  return mockResponse<Community>(community);
+  return mockResponse<Community>({ ...community });
 }
 
 async function handleJoinCommunity(id: string): Promise<AxiosResponse<Community>> {
-  const community = communityStore.find((c) => c.id === id);
+  const community = communityMap.get(id);
   if (!community) {
     throw { response: { status: 404, data: { message: 'Community not found' } } };
   }
@@ -108,7 +111,7 @@ async function handleJoinCommunity(id: string): Promise<AxiosResponse<Community>
 }
 
 async function handleLeaveCommunity(id: string): Promise<AxiosResponse<Community>> {
-  const community = communityStore.find((c) => c.id === id);
+  const community = communityMap.get(id);
   if (!community) {
     throw { response: { status: 404, data: { message: 'Community not found' } } };
   }
@@ -139,14 +142,14 @@ function handlePostList(
 }
 
 function handleCreatePost(communityId: string, payload: CreatePostPayload): AxiosResponse<Post> {
-  const recentDuplicate = postStore.find(
+  const duplicate = postStore.find(
     (p) =>
       p.communityId === communityId &&
       p.title.toLowerCase().trim() === payload.title.toLowerCase().trim() &&
       p.authorId === 'current_user'
   );
 
-  if (recentDuplicate) {
+  if (duplicate) {
     throw {
       response: {
         status: 409,
@@ -170,7 +173,7 @@ function handleCreatePost(communityId: string, payload: CreatePostPayload): Axio
 
   postStore.unshift(newPost);
 
-  const community = communityStore.find((c) => c.id === communityId);
+  const community = communityMap.get(communityId);
   if (community) {
     community.postCount += 1;
   }
@@ -229,13 +232,13 @@ async function routeRequest(
   if (postsMatch && method === 'post') {
     return handleCreatePost(postsMatch[1], data as unknown as CreatePostPayload);
   }
+
   throw { response: { status: 404, data: { message: 'Not found' } } };
 }
 
 export function installMockAdapter(instance: AxiosInstance): void {
   instance.interceptors.request.use(async (config) => {
     await delay(300);
-
     await initMockStore();
 
     const method = (config.method || 'get').toLowerCase();
