@@ -3,13 +3,36 @@ import { mockCommunities } from './communities';
 import { mockPosts } from './posts';
 import { Community, CommunityFilters, CommunityListResponse } from '@/types/community';
 import { CreatePostPayload, Post, PostListResponse } from '@/types/post';
+import { storageService } from '@/services/storage';
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const communityStore: Community[] = mockCommunities.map((c) => ({ ...c }));
-const postStore: Post[] = mockPosts.map((p) => ({ ...p }));
-
+let communityStore: Community[] = mockCommunities.map((c) => ({ ...c }));
+let postStore: Post[] = mockPosts.map((p) => ({ ...p }));
 let nextPostId = 100;
+let storeInitialized = false;
+
+export async function initMockStore(): Promise<void> {
+  if (storeInitialized) return;
+  storeInitialized = true;
+  communityStore = mockCommunities.map((c) => ({ ...c }));
+  postStore = mockPosts.map((p) => ({ ...p }));
+  nextPostId = 100;
+  const joinedIds = await storageService.getJoinedCommunities();
+  joinedIds.forEach((id) => {
+    const community = communityStore.find((c) => c.id === id);
+    if (community) {
+      community.isJoined = true;
+    }
+  });
+}
+
+export function resetMockStore(): void {
+  storeInitialized = false;
+  communityStore = mockCommunities.map((c) => ({ ...c }));
+  postStore = mockPosts.map((p) => ({ ...p }));
+  nextPostId = 100;
+}
 
 function mockResponse<T>(data: T, status = 200): AxiosResponse<T> {
   return {
@@ -72,23 +95,27 @@ function handleCommunityDetail(id: string): AxiosResponse<Community> {
   return mockResponse<Community>(community);
 }
 
-function handleJoinCommunity(id: string): AxiosResponse<Community> {
+async function handleJoinCommunity(id: string): Promise<AxiosResponse<Community>> {
   const community = communityStore.find((c) => c.id === id);
   if (!community) {
     throw { response: { status: 404, data: { message: 'Community not found' } } };
   }
   community.isJoined = true;
   community.memberCount += 1;
+  const joinedIds = communityStore.filter((c) => c.isJoined).map((c) => c.id);
+  await storageService.setJoinedCommunities(joinedIds);
   return mockResponse<Community>({ ...community });
 }
 
-function handleLeaveCommunity(id: string): AxiosResponse<Community> {
+async function handleLeaveCommunity(id: string): Promise<AxiosResponse<Community>> {
   const community = communityStore.find((c) => c.id === id);
   if (!community) {
     throw { response: { status: 404, data: { message: 'Community not found' } } };
   }
   community.isJoined = false;
   community.memberCount -= 1;
+  const joinedIds = communityStore.filter((c) => c.isJoined).map((c) => c.id);
+  await storageService.setJoinedCommunities(joinedIds);
   return mockResponse<Community>({ ...community });
 }
 
@@ -148,12 +175,12 @@ function handleLogin(email: string): AxiosResponse<{
   });
 }
 
-function routeRequest(
+async function routeRequest(
   method: string,
   url: string,
   params: Record<string, unknown>,
   data: Record<string, unknown>
-): AxiosResponse {
+): Promise<AxiosResponse> {
   if (url === '/auth/login' && method === 'post') {
     return handleLogin(data.email as string);
   }
@@ -169,12 +196,12 @@ function routeRequest(
 
   const joinMatch = url.match(/^\/communities\/([^/]+)\/join$/);
   if (joinMatch && method === 'post') {
-    return handleJoinCommunity(joinMatch[1]);
+    return await handleJoinCommunity(joinMatch[1]);
   }
 
   const leaveMatch = url.match(/^\/communities\/([^/]+)\/leave$/);
   if (leaveMatch && method === 'post') {
-    return handleLeaveCommunity(leaveMatch[1]);
+    return await handleLeaveCommunity(leaveMatch[1]);
   }
 
   const postsMatch = url.match(/^\/communities\/([^/]+)\/posts$/);
@@ -192,6 +219,8 @@ export function installMockAdapter(instance: AxiosInstance): void {
   instance.interceptors.request.use(async (config) => {
     await delay(300);
 
+    await initMockStore();
+
     const method = (config.method || 'get').toLowerCase();
     const url = config.url || '';
     const params = (config.params as Record<string, unknown>) || {};
@@ -202,7 +231,7 @@ export function installMockAdapter(instance: AxiosInstance): void {
       : {};
 
     try {
-      const response = routeRequest(method, url, params, data);
+      const response = await routeRequest(method, url, params, data);
       config.adapter = () => Promise.resolve(response);
     } catch (err) {
       config.adapter = () => Promise.reject(err);

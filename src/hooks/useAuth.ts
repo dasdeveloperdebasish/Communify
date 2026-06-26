@@ -3,6 +3,8 @@ import { apiClient } from '@/api/client';
 import { endpoints } from '@/api/endpoints';
 import { useAuthStore } from '@/store/authStore';
 import { storageService } from '@/services/storage';
+import { queryClient } from '@/services/queryClient';
+import { resetMockStore } from '@/api/mocks/adapter';
 import { LoginCredentials, User } from '@/types/auth';
 
 export function useAuth() {
@@ -14,6 +16,12 @@ export function useAuth() {
     setIsLoading(true);
     setError(null);
     try {
+      await storageService.clearPostDraft();
+      await storageService.clearOfflineQueue();
+      await storageService.clearJoinedCommunities();
+      queryClient.clear();
+      resetMockStore();
+
       const response = await apiClient.post<{ token: string; user: User }>(
         endpoints.auth.login,
         credentials
@@ -31,6 +39,11 @@ export function useAuth() {
 
   async function logout() {
     await storageService.clearAuth();
+    await storageService.clearPostDraft();
+    await storageService.clearOfflineQueue();
+    await storageService.clearJoinedCommunities();
+    queryClient.clear();
+    resetMockStore();
     clearAuth();
   }
 

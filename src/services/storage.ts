@@ -7,6 +7,7 @@ const KEYS = {
   USER: 'auth_user',
   OFFLINE_QUEUE: 'offline_queue',
   POST_DRAFT: 'post_draft',
+  JOINED_COMMUNITIES: 'joined_communities',
 };
 
 export const storageService = {
@@ -66,5 +67,18 @@ export const storageService = {
 
   async clearPostDraft(): Promise<void> {
     await AsyncStorage.removeItem(KEYS.POST_DRAFT);
+  },
+
+  async getJoinedCommunities(): Promise<string[]> {
+    const raw = await AsyncStorage.getItem(KEYS.JOINED_COMMUNITIES);
+    return raw ? (JSON.parse(raw) as string[]) : [];
+  },
+
+  async setJoinedCommunities(ids: string[]): Promise<void> {
+    await AsyncStorage.setItem(KEYS.JOINED_COMMUNITIES, JSON.stringify(ids));
+  },
+
+  async clearJoinedCommunities(): Promise<void> {
+    await AsyncStorage.removeItem(KEYS.JOINED_COMMUNITIES);
   },
 };

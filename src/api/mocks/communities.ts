@@ -25,7 +25,7 @@ export const mockCommunities: Community[] = [
       'Deep dives into TypeScript — advanced types, patterns, and real-world usage in large codebases.',
     memberCount: 31500,
     postCount: 2180,
-    isJoined: true,
+    isJoined: false,
     category: 'Technology',
     createdAt: '2020-08-22T10:00:00Z',
     rules: [
@@ -53,7 +53,7 @@ export const mockCommunities: Community[] = [
       'Build in public, share your journey, find co-founders and get advice on growing your indie business.',
     memberCount: 89300,
     postCount: 11240,
-    isJoined: true,
+    isJoined: false,
     category: 'Business',
     createdAt: '2019-04-01T10:00:00Z',
     rules: [
@@ -117,7 +117,7 @@ export const mockCommunities: Community[] = [
       'Reviews, news, recommendations and discussions about mobile games across iOS and Android.',
     memberCount: 156000,
     postCount: 18900,
-    isJoined: true,
+    isJoined: false,
     category: 'Gaming',
     createdAt: '2018-05-10T10:00:00Z',
     rules: ['No spoilers without warning', 'Keep discussions civil', 'No piracy links'],
