@@ -1,14 +1,6 @@
 import { useRef } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  KeyboardAvoidingView,
-  Platform,
-  TextInput,
-  TouchableOpacity,
-} from 'react-native';
+import { View, Text, StyleSheet, Platform, TextInput, TouchableOpacity } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Ionicons } from '@expo/vector-icons';
@@ -39,115 +31,115 @@ export function LoginScreen() {
   };
 
   return (
-    <KeyboardAvoidingView
+    <KeyboardAwareScrollView
       style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      contentContainerStyle={styles.scrollContent}
+      keyboardShouldPersistTaps="handled"
+      showsVerticalScrollIndicator={false}
+      bounces={false}
+      enableOnAndroid
+      extraScrollHeight={Platform.OS === 'android' ? 100 : 20}
+      enableAutomaticScroll
     >
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
-      >
-        <View style={styles.header}>
-          <View style={styles.logoContainer}>
-            <Ionicons name="people" size={40} color={colors.surface} />
-          </View>
-          <Text style={styles.appName}>Communify</Text>
-          <Text style={styles.tagline}>Discover communities, share ideas</Text>
+      <View style={styles.header}>
+        <View style={styles.logoContainer}>
+          <Ionicons name="people" size={40} color={colors.surface} />
         </View>
+        <Text style={styles.appName}>Communify</Text>
+        <Text style={styles.tagline}>Discover communities, share ideas</Text>
+      </View>
 
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Welcome back</Text>
-          <Text style={styles.cardSubtitle}>Sign in to continue</Text>
+      <View style={styles.card}>
+        <Text style={styles.cardTitle}>Welcome back</Text>
+        <Text style={styles.cardSubtitle}>Sign in to continue</Text>
 
-          <View style={styles.form}>
-            <View style={styles.fieldWrapper}>
-              <Text style={styles.fieldLabel}>Email</Text>
-              <Controller
-                control={control}
-                name="email"
-                render={({ field: { onChange, onBlur, value } }) => (
-                  <Input
-                    placeholder="you@example.com"
-                    keyboardType="email-address"
-                    autoCapitalize="none"
-                    autoComplete="email"
-                    returnKeyType="next"
-                    leftIcon="mail-outline"
-                    onChangeText={onChange}
-                    onBlur={onBlur}
-                    value={value}
-                    error={errors.email?.message}
-                    onSubmitEditing={() => passwordRef.current?.focus()}
-                  />
-                )}
-              />
-            </View>
-
-            <View style={styles.fieldWrapper}>
-              <Text style={styles.fieldLabel}>Password</Text>
-              <Controller
-                control={control}
-                name="password"
-                render={({ field: { onChange, onBlur, value } }) => (
-                  <Input
-                    ref={passwordRef}
-                    placeholder="Enter your password"
-                    autoCapitalize="none"
-                    autoComplete="password"
-                    returnKeyType="done"
-                    leftIcon="lock-closed-outline"
-                    isPassword
-                    onChangeText={onChange}
-                    onBlur={onBlur}
-                    value={value}
-                    error={errors.password?.message}
-                    onSubmitEditing={handleSubmit(onSubmit)}
-                  />
-                )}
-              />
-            </View>
-
-            {error && (
-              <View style={styles.errorBanner}>
-                <Ionicons name="alert-circle-outline" size={16} color={colors.error} />
-                <Text style={styles.errorText}>{error}</Text>
-              </View>
-            )}
-
-            <Button
-              label="Sign In"
-              onPress={handleSubmit(onSubmit)}
-              loading={isLoading}
-              fullWidth
-              size="lg"
-              style={styles.submitButton}
+        <View style={styles.form}>
+          <View style={styles.fieldWrapper}>
+            <Text style={styles.fieldLabel}>Email</Text>
+            <Controller
+              control={control}
+              name="email"
+              render={({ field: { onChange, onBlur, value } }) => (
+                <Input
+                  placeholder="you@example.com"
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  autoComplete="email"
+                  returnKeyType="next"
+                  leftIcon="mail-outline"
+                  onChangeText={onChange}
+                  onBlur={onBlur}
+                  value={value}
+                  error={errors.email?.message}
+                  onSubmitEditing={() => passwordRef.current?.focus()}
+                />
+              )}
             />
           </View>
 
-          <View style={styles.divider}>
-            <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>Demo credentials</Text>
-            <View style={styles.dividerLine} />
+          <View style={styles.fieldWrapper}>
+            <Text style={styles.fieldLabel}>Password</Text>
+            <Controller
+              control={control}
+              name="password"
+              render={({ field: { onChange, onBlur, value } }) => (
+                <Input
+                  ref={passwordRef}
+                  placeholder="Enter your password"
+                  autoCapitalize="none"
+                  autoComplete="password"
+                  returnKeyType="done"
+                  leftIcon="lock-closed-outline"
+                  isPassword
+                  onChangeText={onChange}
+                  onBlur={onBlur}
+                  value={value}
+                  error={errors.password?.message}
+                  onSubmitEditing={handleSubmit(onSubmit)}
+                />
+              )}
+            />
           </View>
 
-          <View style={styles.demoHint}>
-            <Ionicons name="information-circle-outline" size={16} color={colors.textMuted} />
-            <Text style={styles.demoText}>Use any email and password (min 6 chars)</Text>
-          </View>
+          {error && (
+            <View style={styles.errorBanner}>
+              <Ionicons name="alert-circle-outline" size={16} color={colors.error} />
+              <Text style={styles.errorText}>{error}</Text>
+            </View>
+          )}
+
+          <Button
+            label="Sign In"
+            onPress={handleSubmit(onSubmit)}
+            loading={isLoading}
+            fullWidth
+            size="lg"
+            style={styles.submitButton}
+          />
         </View>
 
-        <View style={styles.footer}>
-          <TouchableOpacity style={styles.footerLink}>
-            <Text style={styles.footerLinkText}>Privacy Policy</Text>
-          </TouchableOpacity>
-          <Text style={styles.footerDot}>·</Text>
-          <TouchableOpacity style={styles.footerLink}>
-            <Text style={styles.footerLinkText}>Terms of Service</Text>
-          </TouchableOpacity>
+        <View style={styles.divider}>
+          <View style={styles.dividerLine} />
+          <Text style={styles.dividerText}>Demo credentials</Text>
+          <View style={styles.dividerLine} />
         </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+
+        <View style={styles.demoHint}>
+          <Ionicons name="information-circle-outline" size={16} color={colors.textMuted} />
+          <Text style={styles.demoText}>Use any email and password (min 6 chars)</Text>
+        </View>
+      </View>
+
+      <View style={styles.footer}>
+        <TouchableOpacity style={styles.footerLink}>
+          <Text style={styles.footerLinkText}>Privacy Policy</Text>
+        </TouchableOpacity>
+        <Text style={styles.footerDot}>·</Text>
+        <TouchableOpacity style={styles.footerLink}>
+          <Text style={styles.footerLinkText}>Terms of Service</Text>
+        </TouchableOpacity>
+      </View>
+    </KeyboardAwareScrollView>
   );
 }
 
@@ -160,7 +152,7 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.xxl + spacing.lg,
-    paddingBottom: spacing.xl,
+    paddingBottom: spacing.xxl,
   },
   header: {
     alignItems: 'center',
