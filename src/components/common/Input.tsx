@@ -7,6 +7,8 @@ import {
   StyleSheet,
   TextInputProps,
   ViewStyle,
+  TextStyle,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { borderRadius, colors, spacing, typography } from '@/theme';
@@ -19,6 +21,7 @@ interface InputProps extends TextInputProps {
   onRightIconPress?: () => void;
   containerStyle?: ViewStyle;
   isPassword?: boolean;
+  style?: TextStyle;
 }
 
 export const Input = forwardRef<TextInput, InputProps>(function Input(
@@ -30,6 +33,8 @@ export const Input = forwardRef<TextInput, InputProps>(function Input(
     onRightIconPress,
     containerStyle,
     isPassword = false,
+    style,
+    multiline,
     ...props
   },
   ref
@@ -45,6 +50,7 @@ export const Input = forwardRef<TextInput, InputProps>(function Input(
           styles.inputWrapper,
           isFocused && styles.inputWrapperFocused,
           error ? styles.inputWrapperError : null,
+          multiline && styles.inputWrapperMultiline,
         ]}
       >
         {leftIcon && (
@@ -57,11 +63,18 @@ export const Input = forwardRef<TextInput, InputProps>(function Input(
         )}
         <TextInput
           ref={ref}
-          style={[styles.input, leftIcon ? styles.inputWithLeft : null]}
+          style={[
+            styles.input,
+            leftIcon ? styles.inputWithLeft : null,
+            multiline ? styles.inputMultiline : styles.inputSingleLine,
+            style,
+          ]}
           placeholderTextColor={colors.textMuted}
           secureTextEntry={secureText}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
+          multiline={multiline}
+          textAlignVertical={multiline ? 'top' : 'center'}
           {...props}
         />
         {isPassword && (
@@ -86,7 +99,7 @@ export const Input = forwardRef<TextInput, InputProps>(function Input(
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: spacing.md,
+    marginBottom: 0,
   },
   label: {
     ...typography.body2,
@@ -102,6 +115,7 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     borderRadius: borderRadius.md,
     minHeight: 48,
+    overflow: 'hidden',
   },
   inputWrapperFocused: {
     borderColor: colors.primary,
@@ -109,21 +123,39 @@ const styles = StyleSheet.create({
   inputWrapperError: {
     borderColor: colors.error,
   },
+  inputWrapperMultiline: {
+    alignItems: 'flex-start',
+    minHeight: 120,
+  },
   input: {
     flex: 1,
-    ...typography.body1,
+    fontSize: 16,
+    fontWeight: '400',
     color: colors.textPrimary,
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
+    includeFontPadding: false,
+  },
+  inputSingleLine: {
+    height: 48,
+    paddingVertical: 0,
+    lineHeight: Platform.OS === 'ios' ? 0 : 20,
   },
   inputWithLeft: {
     paddingLeft: spacing.xs,
   },
+  inputMultiline: {
+    minHeight: 160,
+    paddingTop: spacing.md,
+    paddingBottom: spacing.md,
+    textAlignVertical: 'top',
+  },
   leftIcon: {
     marginLeft: spacing.md,
+    alignSelf: 'center',
   },
   rightIcon: {
     padding: spacing.md,
+    alignSelf: 'center',
   },
   error: {
     ...typography.caption,

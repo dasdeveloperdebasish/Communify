@@ -133,51 +133,44 @@ export function CreatePostScreen() {
         </View>
 
         <View style={styles.formCard}>
-          <View style={styles.fieldContainer}>
-            <Controller
-              control={control}
-              name="title"
-              render={({ field: { onChange, onBlur, value } }) => (
-                <Input
-                  label="Title"
-                  placeholder="Give your post a clear, descriptive title..."
-                  onChangeText={onChange}
-                  onBlur={onBlur}
-                  value={value}
-                  error={errors.title?.message}
-                  maxLength={150}
-                  returnKeyType="next"
-                  autoFocus
-                />
-              )}
-            />
-            <Text style={styles.charCount}>{titleLength}/150</Text>
-          </View>
+          <Text style={styles.fieldLabel}>Title</Text>
+          <Controller
+            control={control}
+            name="title"
+            render={({ field: { onChange, onBlur, value } }) => (
+              <Input
+                placeholder="Give your post a clear, descriptive title..."
+                onChangeText={onChange}
+                onBlur={onBlur}
+                value={value}
+                error={errors.title?.message}
+                maxLength={150}
+                returnKeyType="next"
+                autoFocus
+              />
+            )}
+          />
+          <Text style={styles.charCount}>{titleLength}/150</Text>
 
-          <View style={styles.fieldContainer}>
-            <Controller
-              control={control}
-              name="body"
-              render={({ field: { onChange, onBlur, value } }) => (
-                <Input
-                  label="Body"
-                  placeholder="Share your thoughts, questions or insights..."
-                  onChangeText={onChange}
-                  onBlur={onBlur}
-                  value={value}
-                  error={errors.body?.message}
-                  multiline
-                  numberOfLines={8}
-                  maxLength={5000}
-                  containerStyle={styles.bodyInputContainer}
-                  style={styles.bodyInput}
-                  returnKeyType="default"
-                  textAlignVertical="top"
-                />
-              )}
-            />
-            <Text style={styles.charCount}>{bodyLength}/5000</Text>
-          </View>
+          <Text style={styles.fieldLabel}>Body</Text>
+          <Controller
+            control={control}
+            name="body"
+            render={({ field: { onChange, onBlur, value } }) => (
+              <Input
+                placeholder="Share your thoughts, questions or insights..."
+                onChangeText={onChange}
+                onBlur={onBlur}
+                value={value}
+                error={errors.body?.message}
+                multiline
+                numberOfLines={8}
+                maxLength={5000}
+                returnKeyType="default"
+              />
+            )}
+          />
+          <Text style={styles.charCount}>{bodyLength}/5000</Text>
         </View>
 
         <View style={styles.tipsCard}>
@@ -278,23 +271,18 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     ...shadows.md,
   },
-  fieldContainer: {
-    position: 'relative',
-  },
-  bodyInputContainer: {
+  fieldLabel: {
+    ...typography.body2,
+    fontWeight: '600',
+    color: colors.textPrimary,
     marginBottom: spacing.xs,
-  },
-  bodyInput: {
-    minHeight: 160,
-    paddingTop: spacing.sm,
   },
   charCount: {
     ...typography.caption,
     color: colors.textMuted,
     textAlign: 'right',
-    marginTop: -spacing.sm,
+    marginTop: spacing.xs,
     marginBottom: spacing.md,
-    paddingRight: spacing.xs,
   },
   tipsCard: {
     backgroundColor: colors.surface,

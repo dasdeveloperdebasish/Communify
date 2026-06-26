@@ -1,14 +1,14 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TextInput,
   TouchableOpacity,
-  ScrollView,
   ActivityIndicator,
+  ScrollView,
+  FlatList,
 } from 'react-native';
-import { FlashList } from '@shopify/flash-list';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -43,6 +43,9 @@ export function CommunityListScreen() {
   const [searchDebounceTimer, setSearchDebounceTimer] = useState<ReturnType<
     typeof setTimeout
   > | null>(null);
+  const categoryScrollRef = useRef<ScrollView>(null);
+  const chipPositions = useRef<Record<string, number>>({});
+  const flatListRef = useRef<FlatList<Community>>(null);
 
   const filters = useMemo(
     () => ({
@@ -69,6 +72,12 @@ export function CommunityListScreen() {
   const leaveMutation = useLeaveCommunity();
 
   const communities = useMemo(() => data?.pages.flatMap((page) => page.data) ?? [], [data]);
+
+  useEffect(() => {
+    if (communities.length > 0) {
+      flatListRef.current?.scrollToOffset({ offset: 0, animated: false });
+    }
+  }, [filters]);
 
   const handleSearchChange = useCallback(
     (text: string) => {
@@ -101,6 +110,15 @@ export function CommunityListScreen() {
     [navigation]
   );
 
+  const handleCategorySelect = useCallback((cat: string) => {
+    setSelectedCategory(cat);
+    const x = chipPositions.current[cat] ?? 0;
+    categoryScrollRef.current?.scrollTo({
+      x: Math.max(0, x - spacing.md),
+      animated: true,
+    });
+  }, []);
+
   const renderItem = useCallback(
     ({ item }: { item: Community }) => (
       <CommunityCard
@@ -127,6 +145,7 @@ export function CommunityListScreen() {
   }, [isFetchingNextPage]);
 
   const activeSortLabel = SORT_OPTIONS.find((o) => o.value === sortBy)?.label;
+  const totalCount = data?.pages[0]?.total ?? 0;
 
   return (
     <View style={styles.container}>
@@ -150,7 +169,6 @@ export function CommunityListScreen() {
             </TouchableOpacity>
           )}
         </View>
-
         <TouchableOpacity
           style={styles.sortButton}
           onPress={() => setShowSortMenu((v) => !v)}
@@ -187,34 +205,39 @@ export function CommunityListScreen() {
         </View>
       )}
 
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.categoriesContainer}
-        style={styles.categoriesScroll}
-      >
-        {CATEGORIES.map((cat) => (
-          <TouchableOpacity
-            key={cat}
-            style={[styles.categoryChip, selectedCategory === cat && styles.categoryChipActive]}
-            onPress={() => setSelectedCategory(cat)}
-            activeOpacity={0.8}
-          >
-            <Text
-              style={[
-                styles.categoryChipText,
-                selectedCategory === cat && styles.categoryChipTextActive,
-              ]}
+      <View style={styles.categoriesWrapper}>
+        <ScrollView
+          ref={categoryScrollRef}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.categoriesContainer}
+        >
+          {CATEGORIES.map((cat) => (
+            <TouchableOpacity
+              key={cat}
+              style={[styles.categoryChip, selectedCategory === cat && styles.categoryChipActive]}
+              onPress={() => handleCategorySelect(cat)}
+              onLayout={(e) => {
+                chipPositions.current[cat] = e.nativeEvent.layout.x;
+              }}
+              activeOpacity={0.8}
             >
-              {cat}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
+              <Text
+                style={[
+                  styles.categoryChipText,
+                  selectedCategory === cat && styles.categoryChipTextActive,
+                ]}
+              >
+                {cat}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </View>
 
       <View style={styles.resultsHeader}>
         <Text style={styles.resultsText}>
-          {isLoading ? 'Loading...' : `${data?.pages[0]?.total ?? 0} communities`}
+          {isLoading ? 'Loading...' : `${totalCount} communities`}
         </Text>
         <Text style={styles.sortText}>Sorted by {activeSortLabel}</Text>
       </View>
@@ -233,30 +256,32 @@ export function CommunityListScreen() {
           message="Failed to load communities. Please check your connection and try again."
           onRetry={refetch}
         />
-      ) : communities.length === 0 ? (
-        <EmptyState
-          icon="people-outline"
-          title="No communities found"
-          subtitle={
-            debouncedSearch
-              ? `No results for "${debouncedSearch}"`
-              : 'Try a different category or search term'
-          }
-          actionLabel={debouncedSearch ? 'Clear Search' : undefined}
-          onAction={debouncedSearch ? handleClearSearch : undefined}
-        />
       ) : (
-        <FlashList
+        <FlatList
+          ref={flatListRef}
           data={communities}
           renderItem={renderItem}
           keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.listContent}
+          ListEmptyComponent={
+            <EmptyState
+              icon="people-outline"
+              title="No communities found"
+              subtitle={
+                debouncedSearch
+                  ? `No results for "${debouncedSearch}"`
+                  : 'Try a different category or search term'
+              }
+              actionLabel={debouncedSearch ? 'Clear Search' : undefined}
+              onAction={debouncedSearch ? handleClearSearch : undefined}
+            />
+          }
+          ListFooterComponent={renderFooter}
           onEndReached={handleEndReached}
           onEndReachedThreshold={0.5}
-          ListFooterComponent={renderFooter}
           onRefresh={refetch}
           refreshing={isRefetching}
           showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.listContent}
         />
       )}
     </View>
@@ -285,7 +310,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
     borderRadius: borderRadius.full,
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
+    height: 40,
     gap: spacing.sm,
   },
   searchInput: {
@@ -293,6 +318,8 @@ const styles = StyleSheet.create({
     ...typography.body2,
     color: colors.textPrimary,
     padding: 0,
+    height: 40,
+    includeFontPadding: false,
   },
   sortButton: {
     width: 40,
@@ -326,25 +353,27 @@ const styles = StyleSheet.create({
     color: colors.primary,
     fontWeight: '600',
   },
-  categoriesScroll: {
-    maxHeight: 52,
+  categoriesWrapper: {
+    height: 52,
     backgroundColor: colors.surface,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
+    justifyContent: 'center',
   },
   categoriesContainer: {
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    gap: spacing.sm,
     alignItems: 'center',
+    gap: spacing.sm,
   },
   categoryChip: {
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
     borderRadius: borderRadius.full,
     backgroundColor: colors.background,
     borderWidth: 1,
     borderColor: colors.border,
+    height: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   categoryChipActive: {
     backgroundColor: colors.primary,
@@ -364,6 +393,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
+    backgroundColor: colors.background,
   },
   resultsText: {
     ...typography.caption,
@@ -376,6 +406,7 @@ const styles = StyleSheet.create({
   },
   listContent: {
     padding: spacing.md,
+    paddingTop: spacing.sm,
   },
   skeletonContainer: {
     padding: spacing.md,

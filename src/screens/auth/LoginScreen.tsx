@@ -41,7 +41,7 @@ export function LoginScreen() {
   return (
     <KeyboardAvoidingView
       style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <ScrollView
         contentContainerStyle={styles.scrollContent}
@@ -61,48 +61,52 @@ export function LoginScreen() {
           <Text style={styles.cardSubtitle}>Sign in to continue</Text>
 
           <View style={styles.form}>
-            <Controller
-              control={control}
-              name="email"
-              render={({ field: { onChange, onBlur, value } }) => (
-                <Input
-                  label="Email"
-                  placeholder="you@example.com"
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                  autoComplete="email"
-                  returnKeyType="next"
-                  leftIcon="mail-outline"
-                  onChangeText={onChange}
-                  onBlur={onBlur}
-                  value={value}
-                  error={errors.email?.message}
-                  onSubmitEditing={() => passwordRef.current?.focus()}
-                />
-              )}
-            />
+            <View style={styles.fieldWrapper}>
+              <Text style={styles.fieldLabel}>Email</Text>
+              <Controller
+                control={control}
+                name="email"
+                render={({ field: { onChange, onBlur, value } }) => (
+                  <Input
+                    placeholder="you@example.com"
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    autoComplete="email"
+                    returnKeyType="next"
+                    leftIcon="mail-outline"
+                    onChangeText={onChange}
+                    onBlur={onBlur}
+                    value={value}
+                    error={errors.email?.message}
+                    onSubmitEditing={() => passwordRef.current?.focus()}
+                  />
+                )}
+              />
+            </View>
 
-            <Controller
-              control={control}
-              name="password"
-              render={({ field: { onChange, onBlur, value } }) => (
-                <Input
-                  ref={passwordRef}
-                  label="Password"
-                  placeholder="Enter your password"
-                  autoCapitalize="none"
-                  autoComplete="password"
-                  returnKeyType="done"
-                  leftIcon="lock-closed-outline"
-                  isPassword
-                  onChangeText={onChange}
-                  onBlur={onBlur}
-                  value={value}
-                  error={errors.password?.message}
-                  onSubmitEditing={handleSubmit(onSubmit)}
-                />
-              )}
-            />
+            <View style={styles.fieldWrapper}>
+              <Text style={styles.fieldLabel}>Password</Text>
+              <Controller
+                control={control}
+                name="password"
+                render={({ field: { onChange, onBlur, value } }) => (
+                  <Input
+                    ref={passwordRef}
+                    placeholder="Enter your password"
+                    autoCapitalize="none"
+                    autoComplete="password"
+                    returnKeyType="done"
+                    leftIcon="lock-closed-outline"
+                    isPassword
+                    onChangeText={onChange}
+                    onBlur={onBlur}
+                    value={value}
+                    error={errors.password?.message}
+                    onSubmitEditing={handleSubmit(onSubmit)}
+                  />
+                )}
+              />
+            </View>
 
             {error && (
               <View style={styles.errorBanner}>
@@ -196,10 +200,18 @@ const styles = StyleSheet.create({
   cardSubtitle: {
     ...typography.body2,
     color: colors.textSecondary,
-    marginBottom: spacing.xl,
+    marginBottom: spacing.lg,
   },
   form: {
+    gap: spacing.sm,
+  },
+  fieldWrapper: {
     gap: spacing.xs,
+  },
+  fieldLabel: {
+    ...typography.body2,
+    fontWeight: '600',
+    color: colors.textPrimary,
   },
   errorBanner: {
     flexDirection: 'row',
@@ -208,7 +220,6 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.md,
     padding: spacing.md,
     gap: spacing.sm,
-    marginBottom: spacing.sm,
   },
   errorText: {
     ...typography.body2,

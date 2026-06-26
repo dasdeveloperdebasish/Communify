@@ -1,11 +1,12 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { TouchableOpacity, StyleSheet, View } from 'react-native';
+import { TouchableOpacity, StyleSheet, View, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CommunityListScreen } from '@/screens/communities/CommunityListScreen';
 import { CommunityDetailScreen } from '@/screens/communities/CommunityDetailScreen';
 import { CreatePostScreen } from '@/screens/posts/CreatePostScreen';
-import { useAuthStore } from '@/store/authStore';
+import { useAuth } from '@/hooks/useAuth';
 import { colors, typography } from '@/theme';
 
 export type CommunitiesStackParamList = {
@@ -22,7 +23,7 @@ const CommunitiesStack = createNativeStackNavigator<CommunitiesStackParamList>()
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
 function CommunitiesStackNavigator() {
-  const clearAuth = useAuthStore((state) => state.clearAuth);
+  const { logout } = useAuth();
 
   return (
     <CommunitiesStack.Navigator
@@ -40,7 +41,7 @@ function CommunitiesStackNavigator() {
         options={{
           title: 'Communities',
           headerRight: () => (
-            <TouchableOpacity onPress={clearAuth} style={styles.logoutButton}>
+            <TouchableOpacity onPress={logout} style={styles.logoutButton}>
               <Ionicons name="log-out-outline" size={24} color={colors.primary} />
             </TouchableOpacity>
           ),
@@ -66,13 +67,19 @@ function CommunitiesStackNavigator() {
   );
 }
 
-export function MainNavigator() {
+function TabBar() {
+  const insets = useSafeAreaInsets();
+  const bottomPadding = insets.bottom > 0 ? insets.bottom : 12;
+
   return (
     <View style={styles.container}>
       <Tab.Navigator
         screenOptions={{
           headerShown: false,
-          tabBarStyle: styles.tabBar,
+          tabBarStyle: [
+            styles.tabBar,
+            { paddingBottom: bottomPadding, height: 52 + bottomPadding },
+          ],
           tabBarActiveTintColor: colors.primary,
           tabBarInactiveTintColor: colors.textMuted,
           tabBarLabelStyle: styles.tabBarLabel,
@@ -83,14 +90,16 @@ export function MainNavigator() {
           component={CommunitiesStackNavigator}
           options={{
             title: 'Communities',
-            tabBarIcon: ({ color, size }) => (
-              <Ionicons name="people-outline" size={size} color={color} />
-            ),
+            tabBarIcon: ({ color, size }) => <Ionicons name="people" size={size} color={color} />,
           }}
         />
       </Tab.Navigator>
     </View>
   );
+}
+
+export function MainNavigator() {
+  return <TabBar />;
 }
 
 const styles = StyleSheet.create({
@@ -112,12 +121,11 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderTopColor: colors.border,
     borderTopWidth: 1,
-    paddingTop: 4,
-    height: 60,
+    paddingTop: 8,
   },
   tabBarLabel: {
     ...typography.caption,
     fontWeight: '600',
-    marginBottom: 4,
+    marginBottom: Platform.OS === 'android' ? 4 : 0,
   },
 });
