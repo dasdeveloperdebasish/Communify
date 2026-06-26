@@ -57,7 +57,9 @@ function CommunityHeader({
       <View style={styles.headerTop}>
         <Avatar name={community.name} size="lg" />
         <View style={styles.headerInfo}>
-          <Text style={styles.communityName}>{community.name}</Text>
+          <Text style={styles.communityName} numberOfLines={1} adjustsFontSizeToFit>
+            {community.name}
+          </Text>
           <Badge label={community.category} variant="primary" />
         </View>
         <TouchableOpacity
