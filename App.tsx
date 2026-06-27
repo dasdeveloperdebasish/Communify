@@ -1,14 +1,15 @@
 import { useEffect } from 'react';
-import { StatusBar } from 'expo-status-bar';
+import { Platform, StyleSheet, View } from 'react-native';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { QueryClientProvider } from '@tanstack/react-query';
-import { View, StyleSheet } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
 import NetInfo from '@react-native-community/netinfo';
-import { queryClient } from '@/services/queryClient';
+
 import { AppNavigator } from '@/navigation/AppNavigator';
+import { queryClient } from '@/services/queryClient';
+import { syncOfflineQueue } from '@/services/offlineQueue';
 import { OfflineBanner } from '@/components/common/OfflineBanner';
 import { useOfflineStore } from '@/store/offlineStore';
-import { syncOfflineQueue } from '@/services/offlineQueue';
 
 function AppContent() {
   const { setOnline, loadQueue, isOnline } = useOfflineStore();
@@ -29,8 +30,8 @@ function AppContent() {
     return () => unsubscribe();
   }, [setOnline]);
 
-  const bannerHeight = 40;
-  const spacerHeight = insets.top + bannerHeight;
+  const bannerHeight = 36;
+  const spacerHeight = Platform.OS === 'android' ? bannerHeight : insets.top + bannerHeight;
 
   return (
     <View style={styles.container}>
